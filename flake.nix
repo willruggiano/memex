@@ -3,19 +3,21 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
-    self,
     nixpkgs,
     rust-overlay,
     flake-utils,
     ...
   }: let
     overlays = [
-      (import rust-overlay)
+      rust-overlay.overlays.default
       (final: prev: {
         memex = final.callPackage ./nix/package.nix {
           rustPlatform = final.makeRustPlatform {
@@ -44,12 +46,11 @@
         };
 
         devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs;
-            [
-              pkg-config
-              openssl
-              rustToolchain
-            ];
+          buildInputs = with pkgs; [
+            pkg-config
+            openssl
+            rustToolchain
+          ];
 
           nativeBuildInputs = with pkgs; [pkg-config];
 
